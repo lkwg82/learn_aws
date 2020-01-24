@@ -97,6 +97,10 @@ resource "aws_glue_job" "scalaJob" {
   }
 }
 
+output "jobName" {
+  value = aws_glue_job.scalaJob.name
+}
+
 resource "aws_glue_catalog_database" "glueDatabase" {
   name = "test-database2"
 }

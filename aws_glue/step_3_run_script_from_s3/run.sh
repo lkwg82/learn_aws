@@ -6,14 +6,14 @@ set -x
 
 terraform apply -auto-approve
 
-bucketName=$(terraform output bucketName)
-aws s3api wait bucket-exists --bucket $bucketName
+jobName=$(terraform output jobName)
+jobRunId=$(aws glue start-job-run --job-name $jobName | jq --raw-output '.JobRunId')
 
-# create data
-file=$(tempfile)
-echo $bucketName > $file
-
-aws s3 cp "$file" s3://"$bucketName"/test.txt
-aws s3 ls "s3://$bucketName"
+jobRunState="RUNNING"
+while [ "$jobRunState" == "RUNNING" ]
+do
+  jobRunState=$(aws glue get-job-run --job-name $jobName --run-id $jobRunId | jq --raw-output '.JobRun.JobRunState')
+  sleep 10
+done
 
 terraform destroy -auto-approve
